@@ -45,3 +45,25 @@ The contents of `/boot/wpa_supplicant.conf`:
    `/dev/i2c-1`.
 
 That should be enough to get the script working as I've committed it now.
+
+## Database and sensor data notes
+
+The SQLite backend I've made uses `FLOAT`s as columns for the sensor data. The
+reason is pretty unelegant: I wanted to use `DECIMAL`s but it turns out SQLite
+would have just made `FLOAT`s out of those.
+
+The sensor returns float data because it can measure fractional quantities.
+According to [Bosch's data
+sheet](https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST-BME280-DS002.pdf)
+of the BME280 sensor, the tolerances are:
+
+* Temperature: +/- 1.0 degrees Celcius between 0 and 65 degrees Celcius,
+* Humidity: +/- 3% relative humidity,
+* Pressure: +/- 1.0 HPa between 0 and 65 degrees Celcius
+
+Anecdotally, however, the sensor seems to be accurate to well within the
+following tolerances:
+
+* Temperature: +/- 0.1 degrees Celcius between 0 and 65 degrees Celcius,
+* Humidity: +/- 0.5% relative humidity,
+* Pressure: +/- 0.5 HPa between 0 and 65 degrees Celcius
