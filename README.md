@@ -40,11 +40,18 @@ The contents of `/boot/wpa_supplicant.conf`:
 
 ## Running the python script:
 
-1. `. $SOME_VENV_DIRECTORY/bin/activate`
-2. `sudo python bme280_sensor.py`. `sudo` is necessary to be able to read from
-   `/dev/i2c-1`.
+`sudo` is necessary to be able to read from `/dev/i2c-1`, and the virtual
+environment activation makes sure that the correct Python version is used (i.e.
+Python 3) so it too needs to be in the `sudo` call.
 
-That should be enough to get the script working as I've committed it now.
+The only way I've been able to do this so far is to make a shell script with the
+following in it, I will make a few easy scripts later.
+
+    #!/bin/bash
+    
+    cd $PROJECT_ROOT
+    . $SOME_VENV_DIRECTORY/activate
+    python bme280_sensor.py
 
 ## Database and sensor data notes
 
