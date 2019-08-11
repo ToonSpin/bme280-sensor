@@ -2,6 +2,7 @@
 
 set -e
 
+ROOT_UID=0
 E_NOTROOT=87
 
 # Run as root, of course.

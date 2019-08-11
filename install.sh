@@ -10,11 +10,12 @@ SCRIPT_NAME="bme280_sensor.py"
 ENTRY_POINT="start_measuring.sh"
 SENSOR_DATA_DB="${SENSOR_DATA_DB_DIR}/sensor-data.db"
 
-SYSTEMD_UNIT_LOCATION="/etc/systemc/system/sensor-data.service"
+SYSTEMD_UNIT_LOCATION="/etc/systemd/system/sensor-data.service"
 
 PACKAGES_NEEDED="python3 python3-venv"
 FILES_NEEDED="requirements.txt ${ENTRY_POINT} ${SCRIPT_NAME}"
 
+ROOT_UID=0
 E_NOTROOT=87
 
 # Run as root, of course.
@@ -79,6 +80,7 @@ Environment=SENSOR_DATA_DB=${SENSOR_DATA_DB}
 WantedBy=multi-user.target
 SYSTEMD_UNIT
 
+echo
 echo "All done, you can run the following commands to start measuring now and automatically after each reboot. The data will be written to ${SENSOR_DATA_DB}".
 echo
 echo "sudo systemctl daemon-reload"
