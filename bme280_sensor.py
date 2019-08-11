@@ -7,7 +7,7 @@ from pathlib import Path
 from os import environ
 
 
-database_file = "./sensor_data.db"
+database_file = "./sensor-data.db"
 address = 0x76
 port = 1
 

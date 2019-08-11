@@ -56,7 +56,7 @@ the pins as follows:
 
 Enabling and starting the systemd service should take care of everything.
 
-Data will end up in the SQLite database `/var/lib/sensor-data/sensor_data.db`.
+Data will end up in the SQLite database `/var/lib/sensor-data/sensor-data.db`.
 
 ## Database and sensor data notes
 
