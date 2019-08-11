@@ -4,10 +4,22 @@ import sqlite3
 
 from time import sleep
 from pathlib import Path
+from os import environ
 
-port = 1
-address = 0x76
+
 database_file = "./sensor_data.db"
+address = 0x76
+port = 1
+
+if 'SENSOR_DATA_DB' in environ:
+    database_file = environ['SENSOR_DATA_DB']
+
+if 'SENSOR_DATA_ADDRESS' in environ:
+    address = environ['SENSOR_DATA_ADDRESS']
+
+if 'SENSOR_DATA_PORT' in environ:
+    port = environ['SENSOR_DATA_PORT']
+
 
 db_file = Path(database_file)
 if not db_file.is_file():
