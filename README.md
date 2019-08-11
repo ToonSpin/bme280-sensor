@@ -28,30 +28,35 @@ The contents of `/boot/wpa_supplicant.conf`:
         key_mgmt=WPA-PSK
     }
 
+## Connecting the sensor
+
+The sensor package this script was built for, namely the Velleman VMA335, uses
+I2C address 0x76 and port 1. With the systemd unit you should be able to set an
+environment variable to modify the script's behavior but I have not tried that
+yet.
+
+Find Raspberry Pi pinout diagrams at [pinout.xyz](https://pinout.xyz/). Connect
+the pins as follows:
+
+* Connect a 3.3 volt pin (**do not** use a higher voltage!) on the Pi, to the
+  `VCC` pin on the sensor.
+* Connect a ground pin on the Pi, to the `GND` pin on the sensor.
+* Connect the `SDA` pin on the Pi to the `SDA` pin on the sensor.
+* Connect the `SDC` pin on the Pi to the `SDC` pin on the sensor.
+
 ## Python setup:
 
-1. Add the line `i2c-dev` to `/etc/modules` and then `sudo modprobe i2c-dev`
-2. `sudo apt-get install python3-venv`
-3. Create a venv somewhere: `python3 -m venv $SOME_VENV_DIRECTORY`
-4. Activate it: `. $SOME_VENV_DIRECTORY/bin/activate`
-5. Install the Python modules in the virtual environment, by going to the
-   project root and running `pip install -r requirements.txt`
-6. Deactivate while the virtual environment is active by running `deactivate`.
+`install.sh` will do the following:
 
-## Running the python script:
+1. `sudo modprobe i2c_dev`
+2. Check for the correct Python packages, and say which `apt-get install`
+   commands you need to run if you don't have them
+3. Install the necessary scripts and set up a venv at `/opt/sensor-data`
+4. Install a systemd unit called `sensor-data.service` and explain how to use it
 
-`sudo` is necessary to be able to read from `/dev/i2c-1`, and the virtual
-environment activation makes sure that the correct Python version is used (i.e.
-Python 3) so it too needs to be in the `sudo` call.
+Enabling and starting the systemd service should take care of everything.
 
-The only way I've been able to do this so far is to make a shell script with the
-following in it, I will make a few easy scripts later.
-
-    #!/bin/bash
-    
-    cd $PROJECT_ROOT
-    . $SOME_VENV_DIRECTORY/activate
-    python bme280_sensor.py
+Data will end up in the SQLite database `/var/lib/sensor-data/sensor_data.db`.
 
 ## Database and sensor data notes
 
@@ -66,11 +71,11 @@ of the BME280 sensor, the tolerances are:
 
 * Temperature: +/- 1.0 degrees Celcius between 0 and 65 degrees Celcius,
 * Humidity: +/- 3% relative humidity,
-* Pressure: +/- 1.0 HPa between 0 and 65 degrees Celcius
+* Pressure: +/- 1.0 HPa between 0 and 65 degrees Celcius.
 
 Anecdotally, however, the sensor seems to be accurate to well within the
 following tolerances:
 
 * Temperature: +/- 0.1 degrees Celcius between 0 and 65 degrees Celcius,
 * Humidity: +/- 0.5% relative humidity,
-* Pressure: +/- 0.5 HPa between 0 and 65 degrees Celcius
+* Pressure: +/- 0.5 HPa between 0 and 65 degrees Celcius.
