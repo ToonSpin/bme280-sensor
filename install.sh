@@ -1,10 +1,15 @@
 #!/bin/bash
 
+set -e
+
 PROGRAM_DIR="/opt/sensor-data"
 VENV_DIR="${PROGRAM_DIR}/venv"
+SENSOR_DATA_DB_DIR="/var/lib/sensor-data"
+
 SCRIPT_NAME="bme280_sensor.py"
 ENTRY_POINT="start_measuring.sh"
-SENSOR_DATA_DB="/var/lib/sensor-data/sensor-data.db"
+SENSOR_DATA_DB="${SENSOR_DATA_DB_DIR}/sensor-data.db"
+
 SYSTEMD_UNIT_LOCATION="/etc/systemc/system/sensor-data.service"
 
 PACKAGES_NEEDED="python3 python3-venv"
@@ -47,6 +52,7 @@ fi
 
 mkdir -p "${PROGRAM_DIR}"
 mkdir -p "${VENV_DIR}"
+mkdir -p "${SENSOR_DATA_DB_DIR}"
 
 for file in $FILES_NEEDED; do
     cp "${file}" "${PROGRAM_DIR}"
