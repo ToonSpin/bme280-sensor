@@ -1,1 +1,3 @@
 sensor-data.db
+__pycache__/
+*.py[cod]
