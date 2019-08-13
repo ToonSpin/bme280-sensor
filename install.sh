@@ -74,6 +74,8 @@ Description=Sensor data measurement
 [Service]
 Type=simple
 ExecStart=${PROGRAM_DIR}/${ENTRY_POINT}
+RestartSec=10
+Restart=always
 Environment=SENSOR_DATA_DB=${SENSOR_DATA_DB}
 
 [Install]
