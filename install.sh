@@ -6,14 +6,18 @@ PROGRAM_DIR="/opt/sensor-data"
 VENV_DIR="${PROGRAM_DIR}/venv"
 SENSOR_DATA_DB_DIR="/var/lib/sensor-data"
 
-SCRIPT_NAME="bme280_sensor.py"
-ENTRY_POINT="start_measuring.sh"
+SCRIPT_NAME_SENSOR="bme280_sensor.py"
+ENTRY_POINT_SENSOR="start_measuring.sh"
+SYSTEMD_UNIT_LOCATION_SENSOR="/etc/systemd/system/sensor-data.service"
+
+SCRIPT_NAME_LCDSCREEN="lcdscreen.py"
+ENTRY_POINT_LCDSCREEN="start_polling.sh"
+SYSTEMD_UNIT_LOCATION_LCDSCREEN="/etc/systemd/system/lcd-screen.service"
+
 SENSOR_DATA_DB="${SENSOR_DATA_DB_DIR}/sensor-data.db"
 
-SYSTEMD_UNIT_LOCATION="/etc/systemd/system/sensor-data.service"
-
 PACKAGES_NEEDED="python3 python3-venv"
-FILES_NEEDED="requirements.txt ${ENTRY_POINT} ${SCRIPT_NAME}"
+FILES_NEEDED="requirements.txt ${ENTRY_POINT_SENSOR} ${SCRIPT_NAME_SENSOR} ${ENTRY_POINT_LCDSCREEN} ${SCRIPT_NAME_LCDSCREEN} Adafruit_CharLCD Adafruit_GPIO"
 
 ROOT_UID=0
 E_NOTROOT=87
@@ -47,7 +51,7 @@ done
 if modprobe i2c_dev > /dev/null; then
     echo "Loaded the kernel module \"i2c_dev\"."
 else
-    echo "Could not load kernel module \"i2c_dev\". The program will not work without it."
+    echo "Could not load kernel module \"i2c_dev\". The sensor program will not work without it."
     exit 1
 fi
 
@@ -56,7 +60,7 @@ mkdir -p "${VENV_DIR}"
 mkdir -p "${SENSOR_DATA_DB_DIR}"
 
 for file in $FILES_NEEDED; do
-    cp "${file}" "${PROGRAM_DIR}"
+    cp -r "${file}" "${PROGRAM_DIR}"
 done
 
 echo "Installing the program and its Python dependencies in ${PROGRAM_DIR}."
@@ -66,14 +70,14 @@ python3 -m venv "${VENV_DIR}"
 pip install -r requirements.txt
 
 echo
-echo "Installing systemd unit at ${SYSTEMD_UNIT_LOCATION}."
-cat > "${SYSTEMD_UNIT_LOCATION}" << SYSTEMD_UNIT
+echo "Installing systemd unit at ${SYSTEMD_UNIT_LOCATION_SENSOR}."
+cat > "${SYSTEMD_UNIT_LOCATION_SENSOR}" << SYSTEMD_UNIT
 [Unit]
 Description=Sensor data measurement
 
 [Service]
 Type=simple
-ExecStart=${PROGRAM_DIR}/${ENTRY_POINT}
+ExecStart=${PROGRAM_DIR}/${ENTRY_POINT_SENSOR}
 RestartSec=10
 Restart=always
 Environment=SENSOR_DATA_DB=${SENSOR_DATA_DB}
@@ -83,8 +87,32 @@ WantedBy=multi-user.target
 SYSTEMD_UNIT
 
 echo
-echo "All done, you can run the following commands to start measuring now and automatically after each reboot. The data will be written to ${SENSOR_DATA_DB}".
+echo "Installing systemd unit at ${SYSTEMD_UNIT_LOCATION_LCDSCREEN}."
+cat > "${SYSTEMD_UNIT_LOCATION_LCDSCREEN}" << SYSTEMD_UNIT
+[Unit]
+Description=LCD Screen Updater
+
+[Service]
+Type=simple
+ExecStart=${PROGRAM_DIR}/${ENTRY_POINT_LCDSCREEN}
+RestartSec=10
+Restart=always
+Environment=SENSOR_DATA_DB=${SENSOR_DATA_DB}
+
+[Install]
+WantedBy=multi-user.target
+SYSTEMD_UNIT
+
+echo
+echo "All done."
+echo "You can run the following commands to start measuring now and automatically after each reboot. The data will be written to ${SENSOR_DATA_DB}".
 echo
 echo "sudo systemctl daemon-reload"
-echo "sudo systemctl enable $(basename ${SYSTEMD_UNIT_LOCATION})"
-echo "sudo systemctl start $(basename ${SYSTEMD_UNIT_LOCATION})"
+echo "sudo systemctl enable $(basename ${SYSTEMD_UNIT_LOCATION_SENSOR})"
+echo "sudo systemctl start $(basename ${SYSTEMD_UNIT_LOCATION_SENSOR})"
+echo
+echo "You can run the following commands to have the LCD screen start reading and displaying data. The data will be read from ${SENSOR_DATA_DB}".
+echo
+echo "sudo systemctl daemon-reload"
+echo "sudo systemctl enable $(basename ${SYSTEMD_UNIT_LOCATION_LCDSCREEN})"
+echo "sudo systemctl start $(basename ${SYSTEMD_UNIT_LOCATION_LCDSCREEN})"
