@@ -52,23 +52,24 @@ need 12 of its pins connected to the Raspberry Pi.
 
 The following pins need to be connected:
 
-|Pin|Connection|
-|1|Ground|
-|2|5V|
-|3|_See below_|
-|4|Board 22, BCM 25|
-|5|Ground|
-|6|Board 18, BCM 24|
-|7|_do not connect_|
-|8|_do not connect_|
-|9|_do not connect_|
-|10|_do not connect_|
-|11|Board 16, BCM 23|
-|12|Board 11, BCM 17|
-|13|Board 12, BCM 18|
-|14|Board 15, BCM 22|
-|15|5V|
-|16|Ground|
+|Pin|Connection       |
+|---|-----------------|
+|1  |Ground           |
+|2  |5V               |
+|3  |_See below_      |
+|4  |Board 22, BCM 25 |
+|5  |Ground           |
+|6  |Board 18, BCM 24 |
+|7  |_do not connect_ |
+|8  |_do not connect_ |
+|9  |_do not connect_ |
+|10 |_do not connect_ |
+|11 |Board 16, BCM 23 |
+|12 |Board 11, BCM 17 |
+|13 |Board 12, BCM 18 |
+|14 |Board 15, BCM 22 |
+|15 |5V               |
+|16 |Ground           |
 
 You need to connect both a 1kOhm resistor and a 2.2kOhm resistor to pin 3. The
 1kOhm resistor needs to be connected to 5V and the 2.2kOhm one to ground.
