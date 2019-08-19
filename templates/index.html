@@ -161,11 +161,12 @@
         }
 
         async function createChartForInterval(interval) {
-            document.getElementById('chart').classList.add('loading');
+            timeoutId = setTimeout(() => document.getElementById('chart').classList.add('loading'), 500);
             const mainData = await getMainData(interval);
             const temperatureData = getDataSubset(mainData['data'], 'temperature');
             const ticks = getHorizontalTicks(interval, mainData['bounds'])
             createChart(temperatureData, ticks);
+            clearTimeout(timeoutId);
             document.getElementById('chart').classList.remove('loading');
         }
 
