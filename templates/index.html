@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Temperature chart</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+        }
+        #controls {
+            height: 8vh;
+            width: 98vw;
+            margin: 1vh 1vw;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+        }
+        #controls > div {
+            background-color: #333;
+            height: 1em;
+            border-radius: 1em;
+            padding: 1em;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #controls > div > div {
+            position: relative;
+            top: -.2em;
+        }
+        #chart {
+            height: 89vh;
+            width: 98vw;
+            margin: 0vh 1vw;
+            position: absolute;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+    <script>
+        var chart = {};
+
+        async function getMainData(interval) {
+            let data = [];
+            data = await fetch('/' + interval).then(function (response){return response.json()});
+            return data;
+        }
+
+        function getDataSubset(mainData, subset) {
+            const labels = [];
+            const data = [];
+            for (let i = 0; i < mainData.length; i++) {
+                labels.push(mainData[i]['measurement_unixtime']);
+                data.push({
+                    x: mainData[i]['measurement_unixtime'],
+                    y: mainData[i][subset],
+                });
+            }
+
+            return {
+                labels: labels,
+                data: data,
+            };
+        }
+
+        function unixtimeToHumanDate(unixtime) {
+            const date = new Date(unixtime * 1000);
+            return date.getDate().toString().padStart(2, '0') + '/' + (date.getMonth() + 1).toString().padStart(2, '0');
+        }
+
+        function unixtimeToHumanTime(unixtime) {
+            const date = new Date(unixtime * 1000);
+            return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        }
+
+        function unixtimeToHumanDatetime(unixtime) {
+            return unixtimeToHumanDate(unixtime) + ' ' + unixtimeToHumanTime(unixtime);
+        }
+
+        function valueToTemperature(value) {
+            return value.toFixed(1) + '°C';
+        }
+
+        function valueToHumidity(value) {
+            return value.toFixed() + '%';
+        }
+
+        function temperatureTickLabel(value) {
+            return value % 5 == 0? valueToTemperature(value): '';
+        }
+
+        // Align the ticks nicely, so they align to a whole hour or quarter of
+        // an hour or something.
+        function getHorizontalTicks(interval, bounds) {
+            // If you want to have ticks equal a whole day, you want to have the
+            // ticks align to midnight local time, not midnight UTC. This is
+            // what this variable is for: it's the timezone offset from UTC.
+            let offset = 0;
+            let stepSize = 3600;
+            let callback = (value, index, values) => unixtimeToHumanTime(value);
+            switch(interval) {
+                case "onehour":
+                    stepSize = 5 * 60;
+                    callback = (value, index, values) => unixtimeToHumanTime(value);
+                    break;
+                case "threehours":
+                    stepSize = 15 * 60;
+                    callback = (value, index, values) => unixtimeToHumanTime(value);
+                    break;
+                case "oneday":
+                    stepSize = 60 * 60;
+                    callback = (value, index, values) => unixtimeToHumanTime(value);
+                    break;
+                case "oneweek":
+                    stepSize = 24 * 60 * 60;
+                    callback = (value, index, values) => unixtimeToHumanDate(value);
+                    offset = new Date().getTimezoneOffset() * 60;
+                    break;
+                case "fourweeks":
+                    stepSize = 48 * 60 * 60;
+                    callback = (value, index, values) => unixtimeToHumanDate(value);
+                    offset = new Date().getTimezoneOffset() * 60;
+                    break;
+            }
+
+            return {
+                min: Math.floor((bounds['min_unix_timestamp']) / stepSize) * stepSize + offset,
+                max: Math.ceil((bounds['max_unix_timestamp']) / stepSize) * stepSize + offset,
+                stepSize: stepSize,
+                callback: callback,
+            }
+        }
+
+        async function createChartForInterval(interval) {
+            const mainData = await getMainData(interval);
+            const temperatureData = getDataSubset(mainData['data'], 'temperature');
+            const ticks = getHorizontalTicks(interval, mainData['bounds'])
+            createChart(temperatureData, ticks);
+        }
+
+        document.addEventListener("DOMContentLoaded", async function(event) {
+            document.querySelectorAll('#controls > div').forEach((element => {
+                element.addEventListener("click", (e) => createChartForInterval(e.target.dataset.interval))
+            }));
+            createChartForInterval('onehour');
+        });
+
+        function createChart(temperatureData, horizontalTicks) {
+            // prevent weird effects when hovering over the chart after you've
+            // switched intervals
+            if (typeof chart.destroy != 'undefined') {
+                chart.destroy();
+            }
+
+            const ctx = document.getElementById('chart-canvas').getContext('2d');
+
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: temperatureData['labels'],
+                    datasets: [
+                        {
+                            label: 'Temperature',
+                            data: temperatureData['data'],
+                            backgroundColor: '#FF0000',
+                            borderColor: '#990000',
+                            borderWidth: 1,
+                            fill: false,
+                            showLine: true,
+                            spanGaps: false
+                        }
+                    ]
+                },
+                options: {
+                    animation: {
+                        duration: 0
+                    },
+                    responsive: true, // use the screen efficiently
+                    maintainAspectRatio: false, // use the screen efficiently
+                    legend: {
+                        display: false, // the legend is distracting in our case
+                    },
+                    scales: {
+                        xAxes: [{
+                            ticks: horizontalTicks
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                callback: (value, index, values) => temperatureTickLabel(value),
+                                stepSize: 1,
+                                suggestedMin: 15, // nice tick alignment, consistent scale
+                                suggestedMax: 35 // nice tick alignment, consistent scale
+                            }
+                        }]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: (item, data) => {
+                                // display date/time and value when hovering instead of unixtime and raw value
+                                return valueToTemperature(item.yLabel) + ' @ ' + unixtimeToHumanDatetime(item.xLabel);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <div id="controls">
+        <div><div data-interval="onehour">one hour</div></div>
+        <div><div data-interval="threehours">three hours</div></div>
+        <div><div data-interval="oneday">one day</div></div>
+        <div><div data-interval="oneweek">one week</div></div>
+        <div><div data-interval="fourweeks">four weeks</div></div>
+    </div>
+    <div id="chart"><canvas id="chart-canvas"></canvas></div>
+</body>
+</html>
