@@ -153,6 +153,13 @@
             }
         }
 
+        function handleButtonClick(event) {
+            if (event.currentTarget.dataset.hasOwnProperty('interval')) {
+                event.stopPropagation();
+                createChartForInterval(event.currentTarget.dataset.interval);
+            }
+        }
+
         async function createChartForInterval(interval) {
             document.getElementById('chart').classList.add('loading');
             const mainData = await getMainData(interval);
@@ -164,7 +171,7 @@
 
         document.addEventListener("DOMContentLoaded", async function(event) {
             document.querySelectorAll('#controls > div').forEach((element => {
-                element.addEventListener("click", (e) => createChartForInterval(e.target.dataset.interval))
+                element.addEventListener("click", (e) => handleButtonClick(e))
             }));
             createChartForInterval('onehour');
         });
@@ -232,11 +239,11 @@
 </head>
 <body>
     <div id="controls">
-        <div><div data-interval="onehour">one hour</div></div>
-        <div><div data-interval="threehours">three hours</div></div>
-        <div><div data-interval="oneday">one day</div></div>
-        <div><div data-interval="oneweek">one week</div></div>
-        <div><div data-interval="fourweeks">four weeks</div></div>
+        <div data-interval="onehour"><div>one hour</div></div>
+        <div data-interval="threehours"><div>three hours</div></div>
+        <div data-interval="oneday"><div>one day</div></div>
+        <div data-interval="oneweek"><div>one week</div></div>
+        <div data-interval="fourweeks"><div>four weeks</div></div>
     </div>
     <div id="chart"><div class="loading-screen"><div>loading</div></div><canvas id="chart-canvas"></canvas></div>
 </body>
