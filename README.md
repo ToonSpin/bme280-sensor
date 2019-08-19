@@ -82,11 +82,19 @@ You need to connect both a 1kOhm resistor and a 2.2kOhm resistor to pin 3. The
 2. Check for the correct Python packages, and say which `apt-get install`
    commands you need to run if you don't have them
 3. Install the necessary scripts and set up a venv at `/opt/sensor-data`
-4. Install a systemd unit called `sensor-data.service` and explain how to use it
-
-Enabling and starting the systemd service should take care of everything.
+4. Install systemd units and explain how to use them.
 
 Data will end up in the SQLite database `/var/lib/sensor-data/sensor-data.db`.
+
+Enabling and starting the systemd services should take care of everything. There
+are three units that are installed by the install script:
+
+* `sensor-data.service` collects the sensor data from the sensor and stores it
+  in the database;
+* `lcd-screen.service` polls the database and displays the last five seconds'
+  worth of data on the LCD screen connected to the Raspberry Pi;
+* `sensor-data-webview.service` serves a web site on port 8000 which displays a
+  graph of the temperature data.
 
 ## Database and sensor data notes
 
