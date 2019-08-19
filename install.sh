@@ -14,10 +14,14 @@ SCRIPT_NAME_LCDSCREEN="lcdscreen.py"
 ENTRY_POINT_LCDSCREEN="start_polling.sh"
 SYSTEMD_UNIT_LOCATION_LCDSCREEN="/etc/systemd/system/lcd-screen.service"
 
+SCRIPT_NAME_WEBVIEW="webview.py"
+ENTRY_POINT_WEBVIEW="start_webview.sh"
+SYSTEMD_UNIT_LOCATION_WEBVIEW="/etc/systemd/system/sensor-data-webview.service"
+
 SENSOR_DATA_DB="${SENSOR_DATA_DB_DIR}/sensor-data.db"
 
 PACKAGES_NEEDED="python3 python3-venv"
-FILES_NEEDED="requirements.txt ${ENTRY_POINT_SENSOR} ${SCRIPT_NAME_SENSOR} ${ENTRY_POINT_LCDSCREEN} ${SCRIPT_NAME_LCDSCREEN} Adafruit_CharLCD Adafruit_GPIO"
+FILES_NEEDED="requirements.txt ${ENTRY_POINT_SENSOR} ${SCRIPT_NAME_SENSOR} ${ENTRY_POINT_LCDSCREEN} ${SCRIPT_NAME_LCDSCREEN} ${ENTRY_POINT_WEBVIEW} ${SCRIPT_NAME_WEBVIEW} Adafruit_CharLCD Adafruit_GPIO templates"
 
 ROOT_UID=0
 E_NOTROOT=87
@@ -55,6 +59,7 @@ else
     exit 1
 fi
 
+echo "Copying required files to ${PROGRAM_DIR}."
 mkdir -p "${PROGRAM_DIR}"
 mkdir -p "${VENV_DIR}"
 mkdir -p "${SENSOR_DATA_DB_DIR}"
@@ -63,10 +68,13 @@ for file in $FILES_NEEDED; do
     cp -r "${file}" "${PROGRAM_DIR}"
 done
 
-echo "Installing the program and its Python dependencies in ${PROGRAM_DIR}."
+echo "Installing the program and its Python dependencies in ${PROGRAM_DIR}:"
 cd "${PROGRAM_DIR}"
+echo "  Creating virtual environment."
 python3 -m venv "${VENV_DIR}"
+echo "  Activating virtual environment."
 . "${VENV_DIR}/bin/activate"
+echo "  Installing Python modules into virtual environment."
 pip install -r requirements.txt
 
 echo
@@ -104,6 +112,23 @@ WantedBy=multi-user.target
 SYSTEMD_UNIT
 
 echo
+echo "Installing systemd unit at ${SYSTEMD_UNIT_LOCATION_WEBVIEW}."
+cat > "${SYSTEMD_UNIT_LOCATION_WEBVIEW}" << SYSTEMD_UNIT
+[Unit]
+Description=Web view into temperature data running on port 8000.
+
+[Service]
+Type=simple
+ExecStart=${PROGRAM_DIR}/${ENTRY_POINT_WEBVIEW}
+RestartSec=10
+Restart=always
+Environment=SENSOR_DATA_DB=${SENSOR_DATA_DB}
+
+[Install]
+WantedBy=multi-user.target
+SYSTEMD_UNIT
+
+echo
 echo "All done."
 echo "You can run the following commands to start measuring now and automatically after each reboot. The data will be written to ${SENSOR_DATA_DB}".
 echo
@@ -116,3 +141,9 @@ echo
 echo "sudo systemctl daemon-reload"
 echo "sudo systemctl enable $(basename ${SYSTEMD_UNIT_LOCATION_LCDSCREEN})"
 echo "sudo systemctl start $(basename ${SYSTEMD_UNIT_LOCATION_LCDSCREEN})"
+echo
+echo "You can run the following commands to get the webview up and running on port 8000. The data will be read from ${SENSOR_DATA_DB}".
+echo
+echo "sudo systemctl daemon-reload"
+echo "sudo systemctl enable $(basename ${SYSTEMD_UNIT_LOCATION_WEBVIEW})"
+echo "sudo systemctl start $(basename ${SYSTEMD_UNIT_LOCATION_WEBVIEW})"
