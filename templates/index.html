@@ -6,6 +6,8 @@
     <style>
         body {
             font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
         }
         #controls {
             height: 8vh;
@@ -35,6 +37,25 @@
             width: 98vw;
             margin: 0vh 1vw;
             position: absolute;
+        }
+        #chart.loading .loading-screen {
+            display: flex;
+        }
+        #chart .loading-screen {
+            display: none;
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(0,0,0,.2);
+        }
+        #chart .loading-screen div {
+            font-size: 10vmin;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: white;
+            margin: auto;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
@@ -133,10 +154,12 @@
         }
 
         async function createChartForInterval(interval) {
+            document.getElementById('chart').classList.add('loading');
             const mainData = await getMainData(interval);
             const temperatureData = getDataSubset(mainData['data'], 'temperature');
             const ticks = getHorizontalTicks(interval, mainData['bounds'])
             createChart(temperatureData, ticks);
+            document.getElementById('chart').classList.remove('loading');
         }
 
         document.addEventListener("DOMContentLoaded", async function(event) {
@@ -215,6 +238,6 @@
         <div><div data-interval="oneweek">one week</div></div>
         <div><div data-interval="fourweeks">four weeks</div></div>
     </div>
-    <div id="chart"><canvas id="chart-canvas"></canvas></div>
+    <div id="chart"><div class="loading-screen"><div>loading</div></div><canvas id="chart-canvas"></canvas></div>
 </body>
 </html>
