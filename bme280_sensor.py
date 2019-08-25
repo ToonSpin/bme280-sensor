@@ -64,4 +64,4 @@ while True:
         db.commit()
     except sqlite3.Error:
         print("Error writing measurement to database!")
-    sleep(1)
+    sleep(10)
