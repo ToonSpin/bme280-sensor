@@ -47,7 +47,7 @@ data_select_query = '''
         COUNT(*) AS num_data_points
     FROM sensor_data
     WHERE
-        "timestamp" > datetime('now', '-5 seconds')
+        "timestamp" > datetime('now', '-25 seconds')
 '''
 
 try:
