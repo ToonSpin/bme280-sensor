@@ -7,4 +7,4 @@ MarkupSafe==1.1.1
 RPi.bme280==0.2.3
 RPi.GPIO==0.7.0
 smbus2==0.2.3
-Werkzeug==0.15.5
+Werkzeug==2.2.3
